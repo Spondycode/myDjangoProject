@@ -1,0 +1,144 @@
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-5xl font-bold text-gray-900 mb-4">
+                Welcome to My Django Project
+            </h1>
+            <p class="text-xl text-gray-600">
+                Django REST Framework + Tailwind CSS
+            </p>
+        </div>
+
+        <!-- Feature Cards -->
+        <div class="grid md:grid-cols-3 gap-6 mt-12">
+            <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-blue-600 mb-4">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Django Backend</h3>
+                <p class="text-gray-600">Powerful Python web framework with SQLite database</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-green-600 mb-4">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">REST API</h3>
+                <p class="text-gray-600">RESTful API powered by Django REST Framework</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-purple-600 mb-4">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Tailwind CSS</h3>
+                <p class="text-gray-600">Modern utility-first CSS framework for styling</p>
+            </div>
+        </div>
+
+        <!-- Interactive Demo Section -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mt-8" x-data="{ items: [], loading: false, newItem: '' }">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6">API Demo</h2>
+            
+            <div class="mb-6">
+                <div class="flex gap-2">
+                    <input 
+                        type="text" 
+                        x-model="newItem"
+                        placeholder="Enter item name..."
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        @keyup.enter="
+                            if(newItem.trim()) {
+                                fetch('/api/items/', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                                    body: JSON.stringify({name: newItem, description: 'Created from frontend'})
+                                }).then(r => r.json()).then(data => {
+                                    items.unshift(data);
+                                    newItem = '';
+                                });
+                            }
+                        "
+                    >
+                    <button 
+                        @click="
+                            if(newItem.trim()) {
+                                fetch('/api/items/', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                                    body: JSON.stringify({name: newItem, description: 'Created from frontend'})
+                                }).then(r => r.json()).then(data => {
+                                    items.unshift(data);
+                                    newItem = '';
+                                });
+                            }
+                        "
+                        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                        Add Item
+                    </button>
+                </div>
+            </div>
+
+            <button 
+                @click="loading = true; fetch('/api/items/').then(r => r.json()).then(data => {items = data.results || data; loading = false;})"
+                class="mb-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+                Load Items from API
+            </button>
+
+            <div x-show="loading" class="text-gray-600">Loading...</div>
+            
+            <div x-show="!loading && items.length === 0" class="text-gray-500">
+                No items yet. Click "Load Items from API" or add a new item.
+            </div>
+
+            <div class="space-y-3">
+                <template x-for="item in items" :key="item.id">
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                            <h4 class="font-semibold text-gray-900" x-text="item.name"></h4>
+                            <p class="text-sm text-gray-600" x-text="item.description"></p>
+                            <p class="text-xs text-gray-400 mt-1" x-text="new Date(item.created_at).toLocaleString()"></p>
+                        </div>
+                        <button 
+                            @click="
+                                fetch(`/api/items/${item.id}/`, {
+                                    method: 'DELETE',
+                                    headers: {'X-CSRFToken': '{{ csrf_token }}'}
+                                }).then(() => {
+                                    items = items.filter(i => i.id !== item.id);
+                                });
+                            "
+                            class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="text-center mt-8 space-x-4">
+            <a href="/admin" class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                Admin Panel
+            </a>
+            <a href="/api" class="inline-block px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium">
+                API Root
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
