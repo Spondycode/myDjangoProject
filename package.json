@@ -2,13 +2,23 @@
   "name": "mydjangoproject",
   "version": "1.0.0",
   "description": "Django project with Tailwind CSS",
+  "keywords": [],
+  "homepage": "https://github.com/Spondycode/myDjangoProject#readme",
+  "bugs": {
+    "url": "https://github.com/Spondycode/myDjangoProject/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Spondycode/myDjangoProject.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "tailwind.config.js",
   "scripts": {
     "dev": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch",
     "build": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "tailwindcss": "^3.4.0"
   }
