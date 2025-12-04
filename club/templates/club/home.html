@@ -36,7 +36,7 @@
         
         <div x-show="!loading && ride" class="bg-white rounded-lg shadow-md overflow-hidden">
             <template x-if="ride && ride.header_photo">
-                <img :src="ride.header_photo" alt="Ride Header" class="w-full h-64 object-cover">
+                <img :src="ride.header_photo" alt="Ride Header" class="w-full h-80 object-cover">
             </template>
             
             <div class="p-6">
@@ -58,16 +58,8 @@
                             View on Relive
                         </a>
                     </template>
-                    <template x-if="ride && ride.gpx_file">
-                        <a :href="ride.gpx_file" download class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-                            Download GPX
-                        </a>
-                    </template>
                     <a href="{% url 'club:upcoming_ride' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
                         View Full Details
-                    </a>
-                    <a href="{% url 'club:rides_list' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md">
-                        All Rides
                     </a>
                 </div>
                 

@@ -77,7 +77,8 @@ class RideViewSet(viewsets.ModelViewSet):
     def upcoming(self, request):
         """Get the next upcoming ride."""
         ride = Ride.objects.filter(
-            date_time__gt=timezone.now()
+            date_time__gt=timezone.now(),
+            completed=False
         ).order_by('date_time').first()
         
         if ride:
