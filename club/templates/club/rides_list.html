@@ -1,0 +1,54 @@
+{% extends 'club/base.html' %}
+
+{% block title %}Completed Rides - Costa Brava Bikers{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Completed Rides</h1>
+    
+    {% if completed_rides %}
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for ride in completed_rides %}
+        <a href="{% url 'club:ride_detail' ride.pk %}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-200 block">
+            {% if ride.header_photo %}
+            <img src="{{ ride.header_photo.url }}" alt="{{ ride.title }}" class="w-full h-48 object-cover">
+            {% else %}
+            <div class="w-full h-48 bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white">
+                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                </svg>
+            </div>
+            {% endif %}
+            <div class="p-5">
+                <h3 class="text-xl font-bold mb-2">{{ ride.title }}</h3>
+                <p class="text-gray-600 mb-3">
+                    📅 {{ ride.date_time|date:"F j, Y" }}
+                </p>
+                <p class="text-sm text-gray-500 mb-3">
+                    📍 {{ ride.start_point }} → {{ ride.end_point }}
+                </p>
+                <div class="flex items-center justify-between pt-3 border-t">
+                    <span class="text-sm text-gray-600">
+                        👥 {{ ride.riders.count }} rider{{ ride.riders.count|pluralize }}
+                    </span>
+                    <span class="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">
+                        ✓ Completed
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow-md p-12 text-center">
+        <div class="mb-6">
+            <svg class="w-24 h-24 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <h2 class="text-2xl font-bold mb-2">No Completed Rides Yet</h2>
+        <p class="text-gray-600">Completed rides will appear here after they're marked as done.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

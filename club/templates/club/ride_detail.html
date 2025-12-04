@@ -1,0 +1,62 @@
+{% extends 'club/base.html' %}
+
+{% block title %}{{ ride.title }} - Costa Brava Bikers{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        {% if ride.header_photo %}
+        <img src="{{ ride.header_photo.url }}" alt="{{ ride.title }}" class="w-full h-96 object-cover">
+        {% endif %}
+        
+        <div class="p-6">
+            <h1 class="text-3xl font-bold mb-4">{{ ride.title }}</h1>
+            
+            <div class="flex flex-wrap gap-4 mb-6 text-gray-600">
+                <span>📅 {{ ride.date_time|date:"l, F j, Y, g:i A" }}</span>
+                <span>📍 {{ ride.start_point }} → {{ ride.end_point }}</span>
+            </div>
+            
+            <div class="prose max-w-none mb-6">
+                <p>{{ ride.description }}</p>
+            </div>
+            
+            <div class="flex flex-wrap gap-4 mb-6">
+                {% if ride.calimoto_url %}
+                <a href="{{ ride.calimoto_url }}" target="_blank" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
+                    View on Calimoto
+                </a>
+                {% endif %}
+                {% if ride.relive_url %}
+                <a href="{{ ride.relive_url }}" target="_blank" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md">
+                    View on Relive
+                </a>
+                {% endif %}
+                {% if ride.gpx_file %}
+                <a href="{{ ride.gpx_file.url }}" download class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                    Download GPX
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="border-t pt-6">
+                <h2 class="text-xl font-bold mb-4">Riders ({{ ride.riders.count }})</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {% for rider in ride.riders.all %}
+                    <div class="text-center">
+                        {% if rider.profile.avatar %}
+                        <img src="{{ rider.profile.avatar.url }}" alt="{{ rider.username }}" class="w-16 h-16 rounded-full mx-auto mb-2">
+                        {% else %}
+                        <div class="w-16 h-16 rounded-full bg-gray-200 mx-auto mb-2"></div>
+                        {% endif %}
+                        <p class="text-sm font-medium">{{ rider.username }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-600 col-span-full">No riders yet</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -22,7 +22,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    path('', include('frontend.urls')),
+    path('club/', include('club.urls')),
+    path('frontend/', include('frontend.urls')),  # Keep old frontend accessible
+    path('', include('club.urls')),  # Motorcycle club as home page
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,136 @@
+{% extends 'club/base.html' %}
+
+{% block title %}Members - Costa Brava Bikers{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Club Members</h1>
+        {% if user.is_staff %}
+        <a href="{% url 'club:member_add' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <span>Add New Rider</span>
+        </a>
+        {% endif %}
+    </div>
+    
+    <div x-data="membersList()" x-init="fetchMembers()">
+        <div x-show="loading" class="text-center py-8">
+            <p class="text-gray-600">Loading members...</p>
+        </div>
+
+        <div x-show="!loading" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <template x-for="member in members" :key="member.id">
+                <div class="bg-white rounded-lg shadow-md p-6 relative">
+                    <div class="flex items-center mb-4">
+                        <template x-if="member.avatar">
+                            <img :src="member.avatar" :alt="member.username" class="w-16 h-16 rounded-full object-cover">
+                        </template>
+                        <template x-if="!member.avatar">
+                            <div class="w-16 h-16 rounded-full bg-gray-200"></div>
+                        </template>
+                        <div class="ml-4 flex-1">
+                            <h3 class="font-bold text-lg" x-text="member.username"></h3>
+                            <p class="text-sm text-gray-600" x-text="member.user?.email"></p>
+                        </div>
+                        {% if user.is_staff %}
+                        <button @click="deleteMember(member)" class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="text-gray-700 mb-4" x-text="member.bio" x-show="member.bio"></p>
+                    
+                    <!-- Bike Photos -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <template x-if="member.bike_photo_1">
+                            <img :src="member.bike_photo_1" alt="Bike" class="w-full h-20 object-cover rounded">
+                        </template>
+                        <template x-if="member.bike_photo_2">
+                            <img :src="member.bike_photo_2" alt="Bike" class="w-full h-20 object-cover rounded">
+                        </template>
+                        <template x-if="member.bike_photo_3">
+                            <img :src="member.bike_photo_3" alt="Bike" class="w-full h-20 object-cover rounded">
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div x-show="!loading && members.length === 0" class="text-center py-12">
+            <p class="text-gray-600">No members found.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function membersList() {
+        return {
+            members: [],
+            loading: true,
+
+            async fetchMembers() {
+                this.loading = true;
+                try {
+                    const response = await fetch('/club/api/profiles/');
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.members = data.results || data;
+                    }
+                } catch (error) {
+                    console.error('Error fetching members:', error);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async deleteMember(member) {
+                if (!confirm(`Are you sure you want to delete ${member.username}? This action cannot be undone.`)) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/club/members/${member.user.id}/delete/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken')
+                        }
+                    });
+
+                    if (response.ok) {
+                        // Remove member from list
+                        this.members = this.members.filter(m => m.id !== member.id);
+                        alert(`${member.username} has been deleted successfully.`);
+                    } else {
+                        const data = await response.json();
+                        alert(data.error || 'Failed to delete member.');
+                    }
+                } catch (error) {
+                    console.error('Error deleting member:', error);
+                    alert('An error occurred while deleting the member.');
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}

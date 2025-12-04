@@ -1,0 +1,168 @@
+{% extends 'club/base.html' %}
+
+{% block title %}Vote - Costa Brava Bikers{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Vote for Next Ride</h1>
+        {% if user.is_staff %}
+        <a href="{% url 'admin:club_poll_add' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <span>Create New Poll</span>
+        </a>
+        {% endif %}
+    </div>
+    
+    <div x-data="pollVoting()" x-init="fetchActivePolls()">
+        <!-- Loading -->
+        <div x-show="loading" class="text-center py-8">
+            <p class="text-gray-600">Loading polls...</p>
+        </div>
+
+        <!-- Active Polls -->
+        <template x-for="poll in polls" :key="poll.id">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-2xl font-bold mb-2" x-text="poll.title"></h2>
+                <p class="text-gray-600 mb-4" x-text="poll.description"></p>
+                
+                <div class="space-y-4">
+                    <template x-for="choice in poll.choices" :key="choice.id">
+                        <div class="border-2 rounded-lg p-5 hover:border-blue-500 transition cursor-pointer"
+                             :class="poll.user_vote === choice.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'"
+                             @click="vote(poll.id, choice.id)">
+                            <!-- Choice Header -->
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-2">
+                                        <input type="radio" 
+                                               :name="'poll-' + poll.id" 
+                                               :checked="poll.user_vote === choice.id" 
+                                               class="mr-3 w-5 h-5 text-blue-600">
+                                        <span class="font-semibold text-lg" x-text="choice.text"></span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 ml-8" x-text="choice.description" x-show="choice.description"></p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-blue-600" x-text="choice.percentage + '%'"></div>
+                                    <div class="text-sm text-gray-500" x-text="choice.vote_count + ' vote' + (choice.vote_count !== 1 ? 's' : '')"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
+                                <div class="bg-blue-600 h-3 rounded-full transition-all duration-500" 
+                                     :style="'width: ' + choice.percentage + '%'"></div>
+                            </div>
+                            
+                            <!-- Voters Avatars -->
+                            <div x-show="choice.voters && choice.voters.length > 0" class="mt-3 pt-3 border-t">
+                                <p class="text-xs text-gray-500 mb-2">Voted by:</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="voter in choice.voters" :key="voter.id">
+                                        <div class="flex items-center space-x-1" :title="voter.username">
+                                            <template x-if="voter.avatar">
+                                                <img :src="voter.avatar" 
+                                                     :alt="voter.username" 
+                                                     class="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm">
+                                            </template>
+                                            <template x-if="!voter.avatar">
+                                                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm"
+                                                     x-text="voter.username.charAt(0).toUpperCase()">
+                                                </div>
+                                            </template>
+                                            <span class="text-xs text-gray-600" x-text="voter.username"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <p class="text-sm text-gray-500 mt-4">Total votes: <span x-text="poll.total_votes"></span></p>
+            </div>
+        </template>
+
+        <!-- No Polls -->
+        <div x-show="!loading && polls.length === 0" class="bg-white rounded-lg shadow-md p-8 text-center">
+            <p class="text-gray-600">No active polls at the moment.</p>
+        </div>
+
+        <!-- Success Message -->
+        <div x-show="message" class="bg-green-100 text-green-700 p-4 rounded-md mb-4">
+            <p x-text="message"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function pollVoting() {
+        return {
+            polls: [],
+            loading: true,
+            message: '',
+
+            async fetchActivePolls() {
+                this.loading = true;
+                try {
+                    // First get list of active polls
+                    const listResponse = await fetch('/club/api/polls/?active=true');
+                    if (listResponse.ok) {
+                        const listData = await listResponse.json();
+                        const pollIds = (listData.results || listData).map(p => p.id);
+                        
+                        // Then fetch detailed data for each poll
+                        const detailPromises = pollIds.map(id => 
+                            fetch(`/club/api/polls/${id}/`).then(r => r.json())
+                        );
+                        this.polls = await Promise.all(detailPromises);
+                    }
+                } catch (error) {
+                    console.error('Error fetching polls:', error);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async vote(pollId, choiceId) {
+                try {
+                    const response = await fetch(`/club/api/polls/${pollId}/vote/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({ choice_id: choiceId })
+                    });
+
+                    if (response.ok) {
+                        this.message = 'Vote recorded successfully!';
+                        setTimeout(() => this.message = '', 3000);
+                        await this.fetchActivePolls();
+                    }
+                } catch (error) {
+                    console.error('Error voting:', error);
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}

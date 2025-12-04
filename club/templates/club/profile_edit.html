@@ -1,0 +1,186 @@
+{% extends 'club/base.html' %}
+
+{% block title %}Edit Profile - Costa Brava Bikers{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Edit Your Profile</h1>
+    
+    <div x-data="profileEditor()" x-init="loadProfile()" class="bg-white rounded-lg shadow-md p-6">
+        <form @submit.prevent="saveProfile" enctype="multipart/form-data">
+            <!-- Avatar Section -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-4">Profile Picture</h2>
+                <div class="flex items-center space-x-4">
+                    <template x-if="profile.avatar">
+                        <img :src="profile.avatar" alt="Avatar" class="w-24 h-24 rounded-full object-cover">
+                    </template>
+                    <template x-if="!profile.avatar">
+                        <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span class="text-gray-500">No photo</span>
+                        </div>
+                    </template>
+                    <input type="file" @change="handleFileChange($event, 'avatar')" accept="image/*" class="block">
+                </div>
+            </div>
+
+            <!-- Bio Section -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Bio</label>
+                <textarea x-model="profile.bio" rows="4" class="w-full border rounded-md px-3 py-2" placeholder="Tell us about yourself..."></textarea>
+            </div>
+
+            <!-- Bike Photos Section -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-4">Your Bikes</h2>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <!-- Bike Photo 1 -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Bike Photo 1</label>
+                        <template x-if="profile.bike_photo_1">
+                            <img :src="profile.bike_photo_1" alt="Bike 1" class="w-full h-48 object-cover rounded-md mb-2">
+                        </template>
+                        <template x-if="!profile.bike_photo_1">
+                            <div class="w-full h-48 bg-gray-200 rounded-md mb-2 flex items-center justify-center">
+                                <span class="text-gray-500">No photo</span>
+                            </div>
+                        </template>
+                        <input type="file" @change="handleFileChange($event, 'bike_photo_1')" accept="image/*" class="block w-full text-sm">
+                    </div>
+
+                    <!-- Bike Photo 2 -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Bike Photo 2</label>
+                        <template x-if="profile.bike_photo_2">
+                            <img :src="profile.bike_photo_2" alt="Bike 2" class="w-full h-48 object-cover rounded-md mb-2">
+                        </template>
+                        <template x-if="!profile.bike_photo_2">
+                            <div class="w-full h-48 bg-gray-200 rounded-md mb-2 flex items-center justify-center">
+                                <span class="text-gray-500">No photo</span>
+                            </div>
+                        </template>
+                        <input type="file" @change="handleFileChange($event, 'bike_photo_2')" accept="image/*" class="block w-full text-sm">
+                    </div>
+
+                    <!-- Bike Photo 3 -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Bike Photo 3</label>
+                        <template x-if="profile.bike_photo_3">
+                            <img :src="profile.bike_photo_3" alt="Bike 3" class="w-full h-48 object-cover rounded-md mb-2">
+                        </template>
+                        <template x-if="!profile.bike_photo_3">
+                            <div class="w-full h-48 bg-gray-200 rounded-md mb-2 flex items-center justify-center">
+                                <span class="text-gray-500">No photo</span>
+                            </div>
+                        </template>
+                        <input type="file" @change="handleFileChange($event, 'bike_photo_3')" accept="image/*" class="block w-full text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div x-show="message" class="mb-4 p-4 rounded-md" :class="messageType === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'">
+                <p x-text="message"></p>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'club:home' %}" class="px-6 py-2 border rounded-md hover:bg-gray-50">Cancel</a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+                    <span x-show="!saving">Save Profile</span>
+                    <span x-show="saving">Saving...</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function profileEditor() {
+        return {
+            profile: {
+                bio: '',
+                avatar: null,
+                bike_photo_1: null,
+                bike_photo_2: null,
+                bike_photo_3: null
+            },
+            files: {},
+            message: '',
+            messageType: '',
+            saving: false,
+
+            async loadProfile() {
+                try {
+                    const response = await fetch('/club/api/profiles/me/');
+                    if (response.ok) {
+                        this.profile = await response.json();
+                    }
+                } catch (error) {
+                    console.error('Error loading profile:', error);
+                }
+            },
+
+            handleFileChange(event, fieldName) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.files[fieldName] = file;
+                }
+            },
+
+            async saveProfile() {
+                this.saving = true;
+                this.message = '';
+
+                const formData = new FormData();
+                formData.append('bio', this.profile.bio || '');
+                
+                for (const [key, file] of Object.entries(this.files)) {
+                    formData.append(key, file);
+                }
+
+                try {
+                    const response = await fetch('/club/api/profiles/me/', {
+                        method: 'PATCH',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        this.profile = await response.json();
+                        this.files = {};
+                        this.message = 'Profile saved successfully!';
+                        this.messageType = 'success';
+                    } else {
+                        this.message = 'Error saving profile. Please try again.';
+                        this.messageType = 'error';
+                    }
+                } catch (error) {
+                    this.message = 'Error saving profile. Please try again.';
+                    this.messageType = 'error';
+                    console.error('Error:', error);
+                } finally {
+                    this.saving = false;
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}

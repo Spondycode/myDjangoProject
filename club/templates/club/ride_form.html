@@ -1,0 +1,217 @@
+{% extends 'club/base.html' %}
+
+{% block title %}{% if edit_mode %}Edit Ride{% else %}Create New Ride{% endif %} - Costa Brava Bikers{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'club:upcoming_ride' %}" class="text-blue-600 hover:text-blue-800 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Upcoming Ride
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <h1 class="text-3xl font-bold mb-6">
+            {% if edit_mode %}
+            Edit Ride: {{ ride.title }}
+            {% else %}
+            Create New Ride
+            {% endif %}
+        </h1>
+
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} px-4 py-3 rounded-lg mb-2">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Title -->
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                    Ride Title <span class="text-red-600">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="title" 
+                    name="title" 
+                    required 
+                    value="{% if edit_mode %}{{ ride.title }}{% endif %}"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Costa Brava Coastal Tour"
+                >
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                    Description <span class="text-red-600">*</span>
+                </label>
+                <textarea 
+                    id="description" 
+                    name="description" 
+                    required 
+                    rows="6"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Describe the ride, what riders can expect, difficulty level, etc."
+                >{% if edit_mode %}{{ ride.description }}{% endif %}</textarea>
+            </div>
+
+            <!-- Date and Time -->
+            <div>
+                <label for="date_time" class="block text-sm font-medium text-gray-700 mb-2">
+                    Date & Time <span class="text-red-600">*</span>
+                </label>
+                <input 
+                    type="datetime-local" 
+                    id="date_time" 
+                    name="date_time" 
+                    required 
+                    value="{% if edit_mode %}{{ ride.date_time|date:'Y-m-d\TH:i' }}{% endif %}"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+            </div>
+
+            <!-- Start and End Points -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label for="start_point" class="block text-sm font-medium text-gray-700 mb-2">
+                        Start Point <span class="text-red-600">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="start_point" 
+                        name="start_point" 
+                        required 
+                        value="{% if edit_mode %}{{ ride.start_point }}{% endif %}"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Parking Lot Main Street"
+                    >
+                </div>
+                <div>
+                    <label for="end_point" class="block text-sm font-medium text-gray-700 mb-2">
+                        End Point <span class="text-red-600">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="end_point" 
+                        name="end_point" 
+                        required 
+                        value="{% if edit_mode %}{{ ride.end_point }}{% endif %}"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Beach Restaurant"
+                    >
+                </div>
+            </div>
+
+            <!-- Header Photo -->
+            <div>
+                <label for="header_photo" class="block text-sm font-medium text-gray-700 mb-2">
+                    Header Photo
+                </label>
+                {% if edit_mode and ride.header_photo %}
+                <div class="mb-3">
+                    <img src="{{ ride.header_photo.url }}" alt="Current header" class="w-48 h-32 object-cover rounded-lg">
+                    <p class="text-sm text-gray-500 mt-1">Current photo (upload new to replace)</p>
+                </div>
+                {% endif %}
+                <input 
+                    type="file" 
+                    id="header_photo" 
+                    name="header_photo" 
+                    accept="image/*"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+            </div>
+
+            <!-- GPX File -->
+            <div>
+                <label for="gpx_file" class="block text-sm font-medium text-gray-700 mb-2">
+                    GPX Route File
+                </label>
+                {% if edit_mode and ride.gpx_file %}
+                <div class="mb-3">
+                    <a href="{{ ride.gpx_file.url }}" class="text-blue-600 hover:underline">Current GPX file</a>
+                    <p class="text-sm text-gray-500">Upload new file to replace</p>
+                </div>
+                {% endif %}
+                <input 
+                    type="file" 
+                    id="gpx_file" 
+                    name="gpx_file" 
+                    accept=".gpx"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+            </div>
+
+            <!-- External URLs -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label for="calimoto_url" class="block text-sm font-medium text-gray-700 mb-2">
+                        Calimoto URL
+                    </label>
+                    <input 
+                        type="url" 
+                        id="calimoto_url" 
+                        name="calimoto_url" 
+                        value="{% if edit_mode %}{{ ride.calimoto_url }}{% endif %}"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="https://..."
+                    >
+                </div>
+                <div>
+                    <label for="relive_url" class="block text-sm font-medium text-gray-700 mb-2">
+                        Relive URL
+                    </label>
+                    <input 
+                        type="url" 
+                        id="relive_url" 
+                        name="relive_url" 
+                        value="{% if edit_mode %}{{ ride.relive_url }}{% endif %}"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="https://..."
+                    >
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-blue-700">
+                            Fields marked with <span class="text-red-600 font-bold">*</span> are required. 
+                            {% if edit_mode %}
+                            For photos and files, upload new ones only if you want to replace the existing ones.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end space-x-4 pt-4 border-t">
+                <a href="{% url 'club:upcoming_ride' %}" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition">
+                    {% if edit_mode %}Update Ride{% else %}Create Ride{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
