@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Chat message text styling */
+.dark .text-gray-700 p {
+    color: rgb(209 213 219); /* gray-300 */
+}
+
+.dark .dark\:text-gray-300 p {
+    color: rgb(209 213 219); /* gray-300 */
+}

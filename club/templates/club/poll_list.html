@@ -5,7 +5,7 @@
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold">Vote for Next Ride</h1>
+        <h1 class="text-3xl font-bold dark:text-white">Vote for Next Ride</h1>
         {% if user.is_staff %}
         <a href="{% url 'admin:club_poll_add' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,19 +19,19 @@
     <div x-data="pollVoting()" x-init="fetchActivePolls()">
         <!-- Loading -->
         <div x-show="loading" class="text-center py-8">
-            <p class="text-gray-600">Loading polls...</p>
+            <p class="text-gray-600 dark:text-gray-400">Loading polls...</p>
         </div>
 
         <!-- Active Polls -->
         <template x-for="poll in polls" :key="poll.id">
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-2xl font-bold mb-2" x-text="poll.title"></h2>
-                <p class="text-gray-600 mb-4" x-text="poll.description"></p>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-2xl font-bold dark:text-white mb-2" x-text="poll.title"></h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-4" x-text="poll.description"></p>
                 
                 <div class="space-y-4">
                     <template x-for="choice in poll.choices" :key="choice.id">
-                        <div class="border-2 rounded-lg p-5 hover:border-blue-500 transition cursor-pointer"
-                             :class="poll.user_vote === choice.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'"
+                        <div class="border-2 rounded-lg p-5 hover:border-blue-500 dark:hover:border-blue-400 transition cursor-pointer"
+                             :class="poll.user_vote === choice.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400' : 'border-gray-200 dark:border-gray-700'"
                              @click="vote(poll.id, choice.id)">
                             <!-- Choice Header -->
                             <div class="flex items-start justify-between mb-3">
@@ -40,26 +40,26 @@
                                         <input type="radio" 
                                                :name="'poll-' + poll.id" 
                                                :checked="poll.user_vote === choice.id" 
-                                               class="mr-3 w-5 h-5 text-blue-600">
-                                        <span class="font-semibold text-lg" x-text="choice.text"></span>
+                                               class="mr-3 w-5 h-5 text-blue-600 dark:text-blue-400">
+                                        <span class="font-semibold text-lg dark:text-white" x-text="choice.text"></span>
                                     </div>
-                                    <p class="text-sm text-gray-600 ml-8" x-text="choice.description" x-show="choice.description"></p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 ml-8" x-text="choice.description" x-show="choice.description"></p>
                                 </div>
                                 <div class="text-right">
-                                    <div class="text-2xl font-bold text-blue-600" x-text="choice.percentage + '%'"></div>
-                                    <div class="text-sm text-gray-500" x-text="choice.vote_count + ' vote' + (choice.vote_count !== 1 ? 's' : '')"></div>
+                                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" x-text="choice.percentage + '%'"></div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400" x-text="choice.vote_count + ' vote' + (choice.vote_count !== 1 ? 's' : '')"></div>
                                 </div>
                             </div>
                             
                             <!-- Progress Bar -->
-                            <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
-                                <div class="bg-blue-600 h-3 rounded-full transition-all duration-500" 
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-3">
+                                <div class="bg-blue-600 dark:bg-blue-500 h-3 rounded-full transition-all duration-500" 
                                      :style="'width: ' + choice.percentage + '%'"></div>
                             </div>
                             
                             <!-- Voters Avatars -->
-                            <div x-show="choice.voters && choice.voters.length > 0" class="mt-3 pt-3 border-t">
-                                <p class="text-xs text-gray-500 mb-2">Voted by:</p>
+                            <div x-show="choice.voters && choice.voters.length > 0" class="mt-3 pt-3 border-t dark:border-gray-700">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Voted by:</p>
                                 <div class="flex flex-wrap gap-2">
                                     <template x-for="voter in choice.voters" :key="voter.id">
                                         <div class="flex items-center space-x-1" :title="voter.username">
@@ -69,11 +69,11 @@
                                                      class="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm">
                                             </template>
                                             <template x-if="!voter.avatar">
-                                                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm"
+                                                <div class="w-8 h-8 rounded-full bg-blue-600 dark:bg-blue-500 text-white flex items-center justify-center text-xs font-bold border-2 border-white dark:border-gray-800 shadow-sm"
                                                      x-text="voter.username.charAt(0).toUpperCase()">
                                                 </div>
                                             </template>
-                                            <span class="text-xs text-gray-600" x-text="voter.username"></span>
+                                            <span class="text-xs text-gray-600 dark:text-gray-400" x-text="voter.username"></span>
                                         </div>
                                     </template>
                                 </div>
@@ -82,17 +82,17 @@
                     </template>
                 </div>
                 
-                <p class="text-sm text-gray-500 mt-4">Total votes: <span x-text="poll.total_votes"></span></p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">Total votes: <span x-text="poll.total_votes"></span></p>
             </div>
         </template>
 
         <!-- No Polls -->
-        <div x-show="!loading && polls.length === 0" class="bg-white rounded-lg shadow-md p-8 text-center">
-            <p class="text-gray-600">No active polls at the moment.</p>
+        <div x-show="!loading && polls.length === 0" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+            <p class="text-gray-600 dark:text-gray-400">No active polls at the moment.</p>
         </div>
 
         <!-- Success Message -->
-        <div x-show="message" class="bg-green-100 text-green-700 p-4 rounded-md mb-4">
+        <div x-show="message" class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 p-4 rounded-md mb-4">
             <p x-text="message"></p>
         </div>
     </div>
