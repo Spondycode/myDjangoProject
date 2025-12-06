@@ -76,10 +76,17 @@ class RideViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def upcoming(self, request):
         """Get the next upcoming ride."""
+        # First try to get future incomplete rides
         ride = Ride.objects.filter(
             date_time__gt=timezone.now(),
             completed=False
         ).order_by('date_time').first()
+        
+        # If no future incomplete rides, get the most recent incomplete ride
+        if not ride:
+            ride = Ride.objects.filter(
+                completed=False
+            ).order_by('-date_time').first()
         
         if ride:
             serializer = RideDetailSerializer(ride, context={'request': request})
@@ -297,7 +304,11 @@ def members_list(request):
 def upcoming_ride(request):
     """Upcoming ride detail page."""
     from django.utils import timezone
+    # First try to get future incomplete rides
     ride = Ride.objects.filter(date_time__gt=timezone.now(), completed=False).order_by('date_time').first()
+    # If no future incomplete rides, get the most recent incomplete ride
+    if not ride:
+        ride = Ride.objects.filter(completed=False).order_by('-date_time').first()
     return render(request, 'club/upcoming_ride.html', {'ride': ride})
 
 

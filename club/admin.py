@@ -17,9 +17,10 @@ class RideRidersInline(admin.TabularInline):
 
 @admin.register(Ride)
 class RideAdmin(admin.ModelAdmin):
-    list_display = ['title', 'date_time', 'start_point', 'end_point', 'created_by']
+    list_display = ['title', 'date_time', 'start_point', 'end_point', 'completed', 'created_by']
     search_fields = ['title', 'description', 'start_point', 'end_point']
-    list_filter = ['date_time', 'created_at']
+    list_filter = ['completed', 'date_time', 'created_at']
+    list_editable = ['completed']
     readonly_fields = ['created_at', 'updated_at']
     filter_horizontal = ['riders']
     fieldsets = (
@@ -37,6 +38,9 @@ class RideAdmin(admin.ModelAdmin):
         }),
         ('Participants', {
             'fields': ('created_by', 'riders')
+        }),
+        ('Status', {
+            'fields': ('completed',)
         }),
         ('Metadata', {
             'fields': ('created_at', 'updated_at'),
