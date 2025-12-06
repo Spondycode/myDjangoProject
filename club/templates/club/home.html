@@ -31,7 +31,15 @@
         </div>
         
         <div x-show="!loading && !ride" class="bg-white rounded-lg shadow-md p-8 text-center">
-            <p class="text-gray-600">No upcoming rides scheduled yet.</p>
+            <p class="text-gray-600 mb-4">No upcoming rides scheduled yet.</p>
+            {% if user.is_staff %}
+            <a href="{% url 'club:ride_add' %}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add New Ride
+            </a>
+            {% endif %}
         </div>
         
         <div x-show="!loading && ride" class="bg-white rounded-lg shadow-md overflow-hidden">
@@ -82,11 +90,12 @@
     </div>
 
     <!-- Quick Links -->
-    <div class="grid md:grid-cols-3 gap-6 mt-8">
+    <div class="grid md:grid-cols-{% if user.is_authenticated %}3{% else %}2{% endif %} gap-6 mt-8">
         <a href="{% url 'club:rides_list' %}" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
             <h3 class="text-xl font-bold mb-2">🛣️ Browse Rides</h3>
             <p class="text-gray-600">View all past and upcoming rides</p>
         </a>
+        {% if user.is_authenticated %}
         <a href="{% url 'club:members_list' %}" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
             <h3 class="text-xl font-bold mb-2">👥 Members</h3>
             <p class="text-gray-600">See who's in the club</p>
@@ -95,6 +104,12 @@
             <h3 class="text-xl font-bold mb-2">⚙️ Profile</h3>
             <p class="text-gray-600">Update your profile and bikes</p>
         </a>
+        {% else %}
+        <a href="{% url 'club:login' %}" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+            <h3 class="text-xl font-bold mb-2">👤 Login</h3>
+            <p class="text-gray-600">Join the club community</p>
+        </a>
+        {% endif %}
     </div>
 </div>
 
