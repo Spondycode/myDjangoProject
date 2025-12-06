@@ -4,21 +4,21 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 py-8">
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
         {% if ride.header_photo %}
         <img src="{{ ride.header_photo.url }}" alt="{{ ride.title }}" class="w-full h-96 object-cover">
         {% endif %}
         
         <div class="p-6">
-            <h1 class="text-3xl font-bold mb-4">{{ ride.title }}</h1>
+            <h1 class="text-3xl font-bold dark:text-white mb-4">{{ ride.title }}</h1>
             
-            <div class="flex flex-wrap gap-4 mb-6 text-gray-600">
+            <div class="flex flex-wrap gap-4 mb-6 text-gray-600 dark:text-gray-400">
                 <span>📅 {{ ride.date_time|date:"l, F j, Y, g:i A" }}</span>
                 <span>📍 {{ ride.start_point }} → {{ ride.end_point }}</span>
             </div>
             
             <div class="prose max-w-none mb-6">
-                <p>{{ ride.description }}</p>
+                <p class="text-gray-700 dark:text-gray-300">{{ ride.description }}</p>
             </div>
             
             <div class="flex flex-wrap gap-4 mb-6">
@@ -39,8 +39,8 @@
                 {% endif %}
             </div>
             
-            <div class="border-t pt-6">
-                <h2 class="text-xl font-bold mb-4">Riders ({{ ride.riders.count }})</h2>
+            <div class="border-t dark:border-gray-700 pt-6">
+                <h2 class="text-xl font-bold dark:text-white mb-4">Riders ({{ ride.riders.count }})</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {% for rider in ride.riders.all %}
                     <div class="text-center">
@@ -49,26 +49,26 @@
                         {% else %}
                         <div class="w-16 h-16 rounded-full bg-gray-200 mx-auto mb-2"></div>
                         {% endif %}
-                        <p class="text-sm font-medium">{{ rider.username }}</p>
+                        <p class="text-sm font-medium dark:text-gray-200">{{ rider.username }}</p>
                     </div>
                     {% empty %}
-                    <p class="text-gray-600 col-span-full">No riders yet</p>
+                    <p class="text-gray-600 dark:text-gray-400 col-span-full">No riders yet</p>
                     {% endfor %}
                 </div>
             </div>
             
             <!-- Photo Gallery -->
             {% if ride.completed and ride.photos.exists %}
-            <div class="border-t pt-6 mt-6">
-                <h2 class="text-xl font-bold mb-4">Photo Gallery ({{ ride.photos.count }})</h2>
+            <div class="border-t dark:border-gray-700 pt-6 mt-6">
+                <h2 class="text-xl font-bold dark:text-white mb-4">Photo Gallery ({{ ride.photos.count }})</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {% for photo in ride.photos.all %}
                     <div class="rounded-lg overflow-hidden shadow-md">
                         <img src="{{ photo.photo.url }}" alt="Ride photo" class="w-full h-48 object-cover">
                         {% if photo.caption %}
-                        <div class="p-3 bg-white">
-                            <p class="text-sm text-gray-700">{{ photo.caption }}</p>
-                            <p class="text-xs text-gray-500 mt-1">📸 {{ photo.uploaded_by.username }}</p>
+                        <div class="p-3 bg-white dark:bg-gray-700">
+                            <p class="text-sm text-gray-700 dark:text-gray-300">{{ photo.caption }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">📸 {{ photo.uploaded_by.username }}</p>
                         </div>
                         {% endif %}
                     </div>
@@ -78,26 +78,26 @@
             {% endif %}
             
             <!-- Comments Section -->
-            <div class="border-t pt-6 mt-6">
-                <h2 class="text-xl font-bold mb-4">Comments & Questions ({{ comments.count }})</h2>
+            <div class="border-t dark:border-gray-700 pt-6 mt-6">
+                <h2 class="text-xl font-bold dark:text-white mb-4">Comments & Questions ({{ comments.count }})</h2>
                 
                 <!-- Comment Form -->
                 {% if user.is_authenticated %}
                 <div class="mb-6">
-                    <form method="POST" class="bg-gray-50 rounded-lg p-4">
+                    <form method="POST" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                         {% csrf_token %}
                         <textarea name="comment_message" rows="3" 
                                   placeholder="Ask a question or leave a comment..."
                                   required
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"></textarea>
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"></textarea>
                         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition">
                             Post Comment
                         </button>
                     </form>
                 </div>
                 {% else %}
-                <div class="mb-6 bg-gray-50 rounded-lg p-4 text-center">
-                    <p class="text-gray-600">Please <a href="{% url 'club:login' %}?next={{ request.path }}" class="text-blue-600 hover:underline">login</a> to leave a comment.</p>
+                <div class="mb-6 bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+                    <p class="text-gray-600 dark:text-gray-300">Please <a href="{% url 'club:login' %}?next={{ request.path }}" class="text-blue-600 dark:text-blue-400 hover:underline">login</a> to leave a comment.</p>
                 </div>
                 {% endif %}
                 
@@ -105,20 +105,20 @@
                 {% if comments %}
                 <div class="space-y-4">
                     {% for comment in comments %}
-                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                    <div class="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                         <div class="flex items-start space-x-3">
                             {% if comment.user.profile.avatar %}
                             <img src="{{ comment.user.profile.avatar.url }}" alt="{{ comment.user.username }}" class="w-10 h-10 rounded-full object-cover">
                             {% else %}
-                            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                            <div class="w-10 h-10 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center text-white font-bold">
                                 {{ comment.user.username|slice:":1"|upper }}
                             </div>
                             {% endif %}
                             <div class="flex-1">
                                 <div class="flex items-center justify-between mb-1">
                                     <div>
-                                        <span class="font-semibold text-gray-900">{{ comment.user.username }}</span>
-                                        <span class="text-sm text-gray-500 ml-2">{{ comment.created_at|timesince }} ago</span>
+                                        <span class="font-semibold text-gray-900 dark:text-white">{{ comment.user.username }}</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">{{ comment.created_at|timesince }} ago</span>
                                     </div>
                                     {% if user.is_staff or comment.user == user %}
                                     <form method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this comment?');">
@@ -130,22 +130,22 @@
                                     </form>
                                     {% endif %}
                                 </div>
-                                <p class="text-gray-700">{{ comment.message|linebreaks }}</p>
+                                <div class="text-gray-700 dark:text-gray-300">{{ comment.message|linebreaks }}</div>
                             </div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center py-8 bg-gray-50 rounded-lg">
-                    <p class="text-gray-500">No comments yet. Be the first to comment!</p>
+                <div class="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p class="text-gray-500 dark:text-gray-400">No comments yet. Be the first to comment!</p>
                 </div>
                 {% endif %}
             </div>
             
             <!-- Edit Button for Completed Rides -->
             {% if ride.completed and user.is_authenticated %}
-            <div class="border-t pt-6 mt-6">
+            <div class="border-t dark:border-gray-700 pt-6 mt-6">
                 <a href="{% url 'club:ride_edit_completed' ride.pk %}" 
                    class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
