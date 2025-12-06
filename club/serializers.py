@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Ride, Poll, PollChoice, Vote
+from .models import Profile, Ride, RidePhoto, Poll, PollChoice, Vote
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -45,6 +45,20 @@ class RideListSerializer(serializers.ModelSerializer):
         return obj.riders.count()
 
 
+class RidePhotoSerializer(serializers.ModelSerializer):
+    """Serializer for ride photos."""
+    uploaded_by = UserSerializer(read_only=True)
+    uploaded_by_username = serializers.CharField(source='uploaded_by.username', read_only=True)
+    
+    class Meta:
+        model = RidePhoto
+        fields = [
+            'id', 'photo', 'caption', 'uploaded_by', 
+            'uploaded_by_username', 'order', 'created_at'
+        ]
+        read_only_fields = ['id', 'uploaded_by', 'created_at']
+
+
 class RideDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for individual ride."""
     created_by = UserSerializer(read_only=True)
@@ -56,6 +70,7 @@ class RideDetailSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    photos = RidePhotoSerializer(many=True, read_only=True)
     is_upcoming = serializers.BooleanField(read_only=True)
     
     class Meta:
@@ -64,8 +79,8 @@ class RideDetailSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'date_time',
             'header_photo', 'calimoto_url', 'relive_url',
             'start_point', 'end_point', 'gpx_file',
-            'created_by', 'riders', 'rider_ids',
-            'is_upcoming', 'created_at', 'updated_at'
+            'created_by', 'riders', 'rider_ids', 'photos',
+            'is_upcoming', 'completed', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_by', 'created_at', 'updated_at']
 

@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Profile, Ride, Poll, PollChoice, Vote
+from .models import Profile, Ride, Poll, PollChoice, Vote, RidePhoto, RideComment
 from .serializers import (
     ProfileSerializer, RideListSerializer, RideDetailSerializer,
     PollListSerializer, PollDetailSerializer, VoteSerializer
@@ -76,10 +76,17 @@ class RideViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def upcoming(self, request):
         """Get the next upcoming ride."""
+        # First try to get future incomplete rides
         ride = Ride.objects.filter(
             date_time__gt=timezone.now(),
             completed=False
         ).order_by('date_time').first()
+        
+        # If no future incomplete rides, get the most recent incomplete ride
+        if not ride:
+            ride = Ride.objects.filter(
+                completed=False
+            ).order_by('-date_time').first()
         
         if ride:
             serializer = RideDetailSerializer(ride, context={'request': request})
@@ -279,9 +286,44 @@ def rides_list(request):
 
 
 def ride_detail(request, pk):
-    """Ride detail page."""
+    """Ride detail page with comments."""
     ride = get_object_or_404(Ride, pk=pk)
-    return render(request, 'club/ride_detail.html', {'ride': ride})
+    
+    # Handle comment submission
+    if request.method == 'POST' and request.user.is_authenticated:
+        if 'comment_message' in request.POST:
+            message = request.POST.get('comment_message', '').strip()
+            if message:
+                RideComment.objects.create(
+                    ride=ride,
+                    user=request.user,
+                    message=message
+                )
+                messages.success(request, 'Comment posted!')
+                return redirect('club:ride_detail', pk=pk)
+        
+        # Handle comment deletion
+        if 'delete_comment' in request.POST:
+            comment_id = request.POST.get('delete_comment')
+            try:
+                comment = RideComment.objects.get(id=comment_id, ride=ride)
+                # Allow deletion if user is staff or comment author
+                if request.user.is_staff or comment.user == request.user:
+                    comment.delete()
+                    messages.success(request, 'Comment deleted!')
+                else:
+                    messages.error(request, 'You can only delete your own comments.')
+            except RideComment.DoesNotExist:
+                messages.error(request, 'Comment not found.')
+            return redirect('club:ride_detail', pk=pk)
+    
+    # Get all comments for this ride
+    comments = ride.comments.select_related('user', 'user__profile').all()
+    
+    return render(request, 'club/ride_detail.html', {
+        'ride': ride,
+        'comments': comments
+    })
 
 
 def poll_list(request):
@@ -295,10 +337,51 @@ def members_list(request):
 
 
 def upcoming_ride(request):
-    """Upcoming ride detail page."""
+    """Upcoming ride detail page with chat."""
     from django.utils import timezone
+    # First try to get future incomplete rides
     ride = Ride.objects.filter(date_time__gt=timezone.now(), completed=False).order_by('date_time').first()
-    return render(request, 'club/upcoming_ride.html', {'ride': ride})
+    # If no future incomplete rides, get the most recent incomplete ride
+    if not ride:
+        ride = Ride.objects.filter(completed=False).order_by('-date_time').first()
+    
+    comments = None
+    if ride:
+        # Handle comment submission
+        if request.method == 'POST' and request.user.is_authenticated:
+            if 'comment_message' in request.POST:
+                message = request.POST.get('comment_message', '').strip()
+                if message:
+                    RideComment.objects.create(
+                        ride=ride,
+                        user=request.user,
+                        message=message
+                    )
+                    messages.success(request, 'Comment posted!')
+                    return redirect('club:upcoming_ride')
+            
+            # Handle comment deletion
+            if 'delete_comment' in request.POST:
+                comment_id = request.POST.get('delete_comment')
+                try:
+                    comment = RideComment.objects.get(id=comment_id, ride=ride)
+                    # Allow deletion if user is staff or comment author
+                    if request.user.is_staff or comment.user == request.user:
+                        comment.delete()
+                        messages.success(request, 'Comment deleted!')
+                    else:
+                        messages.error(request, 'You can only delete your own comments.')
+                except RideComment.DoesNotExist:
+                    messages.error(request, 'Comment not found.')
+                return redirect('club:upcoming_ride')
+        
+        # Get all comments for this ride
+        comments = ride.comments.select_related('user', 'user__profile').all()
+    
+    return render(request, 'club/upcoming_ride.html', {
+        'ride': ride,
+        'comments': comments
+    })
 
 
 @login_required
@@ -398,6 +481,74 @@ def ride_mark_complete(request, pk):
         messages.success(request, f'Ride "{ride.title}" has been marked as completed!')
         return redirect('club:upcoming_ride')
     return redirect('club:upcoming_ride')
+
+
+@login_required
+def ride_edit_completed(request, pk):
+    """Edit a completed ride - all users can add photos, admins can edit all fields."""
+    ride = get_object_or_404(Ride, pk=pk)
+    
+    # Check if ride is completed
+    if not ride.completed:
+        messages.error(request, 'This ride is not completed yet. Use the regular edit page.')
+        return redirect('club:ride_edit', pk=pk)
+    
+    if request.method == 'POST':
+        # Handle photo upload (available to all logged-in users)
+        if 'photo' in request.FILES:
+            photo = request.FILES['photo']
+            caption = request.POST.get('caption', '')
+            RidePhoto.objects.create(
+                ride=ride,
+                photo=photo,
+                caption=caption,
+                uploaded_by=request.user
+            )
+            messages.success(request, 'Photo uploaded successfully!')
+            return redirect('club:ride_edit_completed', pk=pk)
+        
+        # Handle photo deletion
+        if 'delete_photo' in request.POST:
+            photo_id = request.POST.get('delete_photo')
+            try:
+                photo = RidePhoto.objects.get(id=photo_id, ride=ride)
+                # Only allow deletion if user is staff or photo uploader
+                if request.user.is_staff or photo.uploaded_by == request.user:
+                    photo.delete()
+                    messages.success(request, 'Photo deleted successfully!')
+                else:
+                    messages.error(request, 'You can only delete your own photos.')
+            except RidePhoto.DoesNotExist:
+                messages.error(request, 'Photo not found.')
+            return redirect('club:ride_edit_completed', pk=pk)
+        
+        # Handle ride details update (admin only)
+        if request.user.is_staff:
+            ride.title = request.POST.get('title', ride.title)
+            ride.description = request.POST.get('description', ride.description)
+            ride.date_time = request.POST.get('date_time', ride.date_time)
+            ride.start_point = request.POST.get('start_point', ride.start_point)
+            ride.end_point = request.POST.get('end_point', ride.end_point)
+            ride.calimoto_url = request.POST.get('calimoto_url', '')
+            ride.relive_url = request.POST.get('relive_url', '')
+            
+            if 'header_photo' in request.FILES:
+                ride.header_photo = request.FILES['header_photo']
+            
+            if 'gpx_file' in request.FILES:
+                ride.gpx_file = request.FILES['gpx_file']
+            
+            ride.save()
+            messages.success(request, f'Ride "{ride.title}" has been updated successfully!')
+            return redirect('club:ride_detail', pk=pk)
+    
+    # Get all photos for this ride
+    photos = ride.photos.all()
+    
+    return render(request, 'club/ride_edit_completed.html', {
+        'ride': ride,
+        'photos': photos
+    })
 
 
 @staff_member_required

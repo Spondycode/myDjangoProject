@@ -22,6 +22,7 @@ urlpatterns = [
     path('upcoming-ride/', views.upcoming_ride, name='upcoming_ride'),
     path('rides/add/', views.ride_add, name='ride_add'),
     path('rides/<int:pk>/edit/', views.ride_edit, name='ride_edit'),
+    path('rides/<int:pk>/edit-completed/', views.ride_edit_completed, name='ride_edit_completed'),
     path('rides/<int:pk>/join/', views.ride_join, name='ride_join'),
     path('rides/<int:pk>/leave/', views.ride_leave, name='ride_leave'),
     path('rides/<int:pk>/complete/', views.ride_mark_complete, name='ride_mark_complete'),

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Ride, Poll, PollChoice, Vote
+from .models import Profile, Ride, RidePhoto, RideComment, Poll, PollChoice, Vote
 
 
 @admin.register(Profile)
@@ -17,9 +17,10 @@ class RideRidersInline(admin.TabularInline):
 
 @admin.register(Ride)
 class RideAdmin(admin.ModelAdmin):
-    list_display = ['title', 'date_time', 'start_point', 'end_point', 'created_by']
+    list_display = ['title', 'date_time', 'start_point', 'end_point', 'completed', 'created_by']
     search_fields = ['title', 'description', 'start_point', 'end_point']
-    list_filter = ['date_time', 'created_at']
+    list_filter = ['completed', 'date_time', 'created_at']
+    list_editable = ['completed']
     readonly_fields = ['created_at', 'updated_at']
     filter_horizontal = ['riders']
     fieldsets = (
@@ -38,6 +39,9 @@ class RideAdmin(admin.ModelAdmin):
         ('Participants', {
             'fields': ('created_by', 'riders')
         }),
+        ('Status', {
+            'fields': ('completed',)
+        }),
         ('Metadata', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
@@ -48,6 +52,35 @@ class RideAdmin(admin.ModelAdmin):
 class PollChoiceInline(admin.TabularInline):
     model = PollChoice
     extra = 3
+
+
+@admin.register(RidePhoto)
+class RidePhotoAdmin(admin.ModelAdmin):
+    list_display = ['ride', 'uploaded_by', 'created_at', 'order']
+    search_fields = ['ride__title', 'caption', 'uploaded_by__username']
+    list_filter = ['created_at', 'ride']
+    readonly_fields = ['created_at']
+    list_editable = ['order']
+    fieldsets = (
+        ('Photo Information', {
+            'fields': ('ride', 'photo', 'caption')
+        }),
+        ('Metadata', {
+            'fields': ('uploaded_by', 'order', 'created_at')
+        }),
+    )
+
+
+@admin.register(RideComment)
+class RideCommentAdmin(admin.ModelAdmin):
+    list_display = ['ride', 'user', 'created_at', 'message_preview']
+    search_fields = ['ride__title', 'user__username', 'message']
+    list_filter = ['created_at', 'ride']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def message_preview(self, obj):
+        return obj.message[:50] + '...' if len(obj.message) > 50 else obj.message
+    message_preview.short_description = 'Message'
 
 
 @admin.register(Poll)

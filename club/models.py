@@ -107,6 +107,67 @@ class Ride(models.Model):
         return self.date_time > timezone.now()
 
 
+class RidePhoto(models.Model):
+    """Photo gallery for completed rides."""
+    ride = models.ForeignKey(
+        Ride,
+        on_delete=models.CASCADE,
+        related_name='photos',
+        help_text="Associated ride"
+    )
+    photo = models.ImageField(
+        upload_to='ride_photos/',
+        help_text="Ride photo"
+    )
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='uploaded_photos',
+        help_text="User who uploaded this photo"
+    )
+    caption = models.TextField(
+        blank=True,
+        help_text="Optional photo caption"
+    )
+    order = models.IntegerField(
+        default=0,
+        help_text="Display order (lower numbers first)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Photo for {self.ride.title} by {self.uploaded_by.username if self.uploaded_by else 'Unknown'}"
+
+    class Meta:
+        ordering = ['order', '-created_at']
+
+
+class RideComment(models.Model):
+    """Comments/chat for rides."""
+    ride = models.ForeignKey(
+        Ride,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        help_text="Associated ride"
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='ride_comments',
+        help_text="User who posted the comment"
+    )
+    message = models.TextField(help_text="Comment text")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} on {self.ride.title}"
+
+    class Meta:
+        ordering = ['created_at']
+
+
 class Poll(models.Model):
     """Poll for voting on next ride options."""
     title = models.CharField(max_length=200, help_text="Poll question")
