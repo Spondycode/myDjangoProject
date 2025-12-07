@@ -62,6 +62,11 @@ class Ride(models.Model):
         max_length=500,
         help_text="Relive video URL"
     )
+    what3words_url = models.URLField(
+        blank=True,
+        max_length=500,
+        help_text="What3Words location URL"
+    )
     start_point = models.CharField(
         max_length=300,
         help_text="Starting location"

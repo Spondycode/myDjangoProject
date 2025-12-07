@@ -34,7 +34,7 @@ class RideAdmin(admin.ModelAdmin):
             'fields': ('header_photo', 'gpx_file')
         }),
         ('External Links', {
-            'fields': ('calimoto_url', 'relive_url')
+            'fields': ('calimoto_url', 'relive_url', 'what3words_url')
         }),
         ('Participants', {
             'fields': ('created_by', 'riders')

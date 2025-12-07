@@ -32,6 +32,11 @@
                     View on Relive
                 </a>
                 {% endif %}
+                {% if ride.what3words_url %}
+                <a href="{{ ride.what3words_url }}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+                    View on What3Words
+                </a>
+                {% endif %}
                 {% if ride.gpx_file %}
                 <a href="{{ ride.gpx_file.url }}" download class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
                     Download GPX
